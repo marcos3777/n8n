@@ -358,6 +358,7 @@ export class WorkflowExecute {
 			destinationNodeName,
 			'a destinationNodeName is required for the new partial execution flow',
 		);
+		const originalDestination = destinationNodeName;
 
 		let destination = workflow.getNode(destinationNodeName);
 		assert.ok(
@@ -456,6 +457,7 @@ export class WorkflowExecute {
 		this.runExecutionData = {
 			startData: {
 				destinationNode: destinationNodeName,
+				originalDestinationNode: originalDestination,
 				runNodeFilter: Array.from(filteredNodes.values()).map((node) => node.name),
 			},
 			resultData: {
@@ -471,7 +473,11 @@ export class WorkflowExecute {
 			},
 		};
 
-		return this.processRunExecutionData(graph.toWorkflow({ ...workflow }));
+		// Still passing the original workflow here, because the WorkflowDataProxy
+		// needs it to create more useful error messages, e.g. differentiate
+		// between a node not being connected to the node referencing it or a node
+		// not existing in the workflow.
+		return this.processRunExecutionData(workflow);
 	}
 
 	/**
@@ -1545,7 +1551,7 @@ export class WorkflowExecute {
 
 								nodeSuccessData = runNodeData.data;
 
-								const didContinueOnFail = nodeSuccessData?.[0]?.[0]?.json?.error !== undefined;
+								let didContinueOnFail = nodeSuccessData?.[0]?.[0]?.json?.error !== undefined;
 
 								while (didContinueOnFail && tryIndex !== maxTries - 1) {
 									await sleep(waitBetweenTries);
@@ -1560,6 +1566,8 @@ export class WorkflowExecute {
 										this.abortController.signal,
 									);
 
+									nodeSuccessData = runNodeData.data;
+									didContinueOnFail = nodeSuccessData?.[0]?.[0]?.json?.error !== undefined;
 									tryIndex++;
 								}
 

@@ -931,6 +931,7 @@ export type IExecuteFunctions = ExecuteFunctions.GetNodeParameterFn &
 			currentNodeRunIndex: number,
 			data: INodeExecutionData[][] | ExecutionError,
 			metadata?: ITaskMetadata,
+			sourceNodeRunIndex?: number,
 		): void;
 
 		addExecutionHints(...hints: NodeExecutionHint[]): void;
@@ -2143,6 +2144,9 @@ export interface IRun {
 	startedAt: Date;
 	stoppedAt?: Date;
 	status: ExecutionStatus;
+
+	/** ID of the job this execution belongs to. Only in scaling mode. */
+	jobId?: string;
 }
 
 // Contains all the data which is needed to execute a workflow and so also to
@@ -2152,6 +2156,7 @@ export interface IRunExecutionData {
 	startData?: {
 		startNodes?: StartNodeData[];
 		destinationNode?: string;
+		originalDestinationNode?: string;
 		runNodeFilter?: string[];
 	};
 	resultData: {
