@@ -70,6 +70,7 @@ import type { BulkCommand, Undoable } from '@/models/history';
 
 import type { ProjectSharingData } from '@/types/projects.types';
 import type { PathItem } from '@n8n/design-system/components/N8nBreadcrumbs/Breadcrumbs.vue';
+import { type IconName } from '@n8n/design-system/src/components/N8nIcon/icons';
 
 export * from '@n8n/design-system/types';
 
@@ -291,6 +292,56 @@ export interface IWorkflowDb {
 export type BaseResource = {
 	id: string;
 	name: string;
+};
+
+export type FolderResource = BaseFolderItem & {
+	resourceType: 'folder';
+};
+
+export type WorkflowResource = BaseResource & {
+	resourceType: 'workflow';
+	updatedAt: string;
+	createdAt: string;
+	active: boolean;
+	isArchived: boolean;
+	homeProject?: ProjectSharingData;
+	scopes?: Scope[];
+	tags?: ITag[] | string[];
+	sharedWithProjects?: ProjectSharingData[];
+	readOnly: boolean;
+	parentFolder?: ResourceParentFolder;
+};
+
+export type VariableResource = BaseResource & {
+	resourceType: 'variable';
+	key?: string;
+	value?: string;
+};
+
+export type CredentialsResource = BaseResource & {
+	resourceType: 'credential';
+	updatedAt: string;
+	createdAt: string;
+	type: string;
+	homeProject?: ProjectSharingData;
+	scopes?: Scope[];
+	sharedWithProjects?: ProjectSharingData[];
+	readOnly: boolean;
+	needsSetup: boolean;
+};
+
+export type Resource = WorkflowResource | FolderResource | CredentialsResource | VariableResource;
+
+export type BaseFilters = {
+	search: string;
+	homeProject: string;
+	[key: string]: boolean | string | string[];
+};
+
+export type SortingAndPaginationUpdates = {
+	page?: number;
+	pageSize?: number;
+	sort?: string;
 };
 
 export type WorkflowListItem = Omit<
@@ -534,6 +585,7 @@ export interface IUser extends IUserResponse {
 	fullName?: string;
 	createdAt?: string;
 	mfaEnabled: boolean;
+	mfaAuthenticated?: boolean;
 }
 
 export interface IUserListAction {
@@ -618,7 +670,7 @@ export type SimplifiedNodeType = Pick<
 export interface SubcategoryItemProps {
 	description?: string;
 	iconType?: string;
-	icon?: string;
+	icon?: IconName;
 	iconProps?: {
 		color?: string;
 	};
@@ -1022,7 +1074,7 @@ export interface ITab<Value extends string | number = string | number> {
 	value: Value;
 	label?: string;
 	href?: string;
-	icon?: string;
+	icon?: IconName;
 	align?: 'right';
 	tooltip?: string;
 }
@@ -1269,7 +1321,8 @@ export type EnterpriseEditionFeatureKey =
 	| 'WorkflowHistory'
 	| 'WorkerView'
 	| 'AdvancedPermissions'
-	| 'ApiKeyScopes';
+	| 'ApiKeyScopes'
+	| 'EnforceMFA';
 
 export type EnterpriseEditionFeatureValue = keyof Omit<FrontendSettings['enterprise'], 'projects'>;
 
